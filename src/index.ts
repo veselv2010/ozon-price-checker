@@ -71,10 +71,16 @@ const URL =
     "https://www.ozon.ru/category/videokarty-15721/?deny_category_prediction=true&from_global=true&sorting=ozon_card_price&text=rtx+3080";
 
 const main = async () => {
+    const items = await parseItems();
+    console.log(items);
+    // sendMessage(items);
+};
+
+const parseItems = async (): Promise<Array<ScrapedItem>> => {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     await page.goto(URL);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 100));
     const items = await page.$$(".j4z");
     const data: Array<ScrapedItem> = [];
     for (let i = 0; i < items.length; i++) {
@@ -83,33 +89,29 @@ const main = async () => {
         const url = await getUrl(items[i]);
         data.push(new ScrapedItem(title, price, url));
     }
-    console.log(data);
+    return data;
 };
 
 const getPrice = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<number> => {
     const priceBlock = await elem.$(".ui-o7");
-    return Number(
-        (await priceBlock.getProperty("textContent"))
-            .toString()
-            .replace(" ", "")
-            .replace("₽", "")
-    );
+    const result = await priceBlock.evaluate((el) => el.textContent);
+    return Number(result.replace("/&thinsp;/gi", "").replace("₽", ""));
 };
 
 const getTitle = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<string> => {
-    const titleBlock = await elem.$(".v4d");
-    return await (await titleBlock?.getProperty("textContent")).toString();
+    const titleBlock = await elem.$(".tsBodyL");
+    return titleBlock.evaluate((el) => el.textContent);
 };
 
 const getUrl = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<string> => {
     const hrefBlock = await elem.$(".tile-hover-target");
-    return await (await hrefBlock.getProperty("href")).toString();
+    return hrefBlock.evaluate((el) => el.getAttribute("href"));
 };
 
 main();
