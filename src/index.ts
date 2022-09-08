@@ -21,17 +21,12 @@ bot.command("quit", (ctx) => {
 
 function sendMessage(info: ScraptedItem[]): void {
     const chatIds = getCachedChatIds();
-    const composedMessages = info.map((item, index) => {
-        const message = `${index + 1}. ${composeMessage(item)}`;
-        return `[${message}](${item.url})`;
-    }).join('\n');
+    const composedMessages = info
+        .map((item, index) => item.toMessage(index))
+        .join("\n");
     chatIds.forEach((id) => {
         bot.telegram.sendMessage(id, composedMessages);
     });
-}
-
-function composeMessage(item: ScraptedItem): string {
-    return `${item.name} ${item.getPrice()}](${item.url})`;
 }
 
 function getCachedChatIds(): string[] {
@@ -74,16 +69,6 @@ function saveCacheArray(cache: Array<string>): void {
 
 const URL =
     "https://www.ozon.ru/category/videokarty-15721/?deny_category_prediction=true&from_global=true&sorting=ozon_card_price&text=rtx+3080";
-
-bot.start((ctx) => {
-    ctx.reply("Hello " + ctx.from.first_name + "!");
-});
-
-bot.command("quit", (ctx) => {
-    // Explicit usage
-    ctx.telegram.leaveChat(ctx.message.chat.id); // Context shortcut
-    ctx.leaveChat();
-});
 
 const main = async () => {
     const browser = await puppeteer.launch({ headless: false });
