@@ -79,8 +79,13 @@ const main = async () => {
 const parseItems = async (): Promise<Array<ScrapedItem>> => {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
+    page.setViewport({
+        width: 1024,
+        height: 2560,
+        deviceScaleFactor: 1,
+    });
     await page.goto(URL);
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 1000));
     const items = await page.$$(".j4z");
     const data: Array<ScrapedItem> = [];
     for (let i = 0; i < items.length; i++) {
@@ -97,22 +102,28 @@ const getPrice = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<number> => {
     const priceBlock = await elem.$(".ui-o7.ui-p0.ui-p3");
-    const result = await priceBlock.evaluate((el) => el.textContent);
-    return Number(result.replace("/&thinsp;/gi", "").replace("₽", "").replace(' ', '').trim());
+    const result = await priceBlock?.evaluate((el) => el.textContent);
+    return Number(
+        result
+            ?.replace("/&thinsp;/gi", "")
+            ?.replace("₽", "")
+            ?.replace(" ", "")
+            ?.trim()
+    );
 };
 
 const getTitle = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<string> => {
     const titleBlock = await elem.$(".tsBodyL");
-    return titleBlock.evaluate((el) => el.textContent);
+    return titleBlock?.evaluate((el) => el.textContent);
 };
 
 const getUrl = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<string> => {
     const hrefBlock = await elem.$(".tile-hover-target");
-    return hrefBlock.evaluate((el) => el.getAttribute("href"));
+    return hrefBlock?.evaluate((el) => el.getAttribute("href"));
 };
 
 main();
