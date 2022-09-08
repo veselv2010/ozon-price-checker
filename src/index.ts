@@ -2,7 +2,7 @@ import { Context, Telegraf } from "telegraf";
 import { Update } from "typegram";
 import * as puppeteer from "puppeteer";
 import fs = require("fs");
-import { ScraptedItem } from "./models/ScrapedItem";
+import { ScrapedItem } from "./models/ScrapedItem";
 
 const cachePath = ".cache/cache.json";
 const bot: Telegraf<Context<Update>> = new Telegraf(
@@ -19,7 +19,7 @@ bot.command("quit", (ctx) => {
     removeChatIdFromCache(ctx.message.chat.id.toString());
 });
 
-function sendMessage(info: ScraptedItem[]): void {
+function sendMessage(info: ScrapedItem[]): void {
     const chatIds = getCachedChatIds();
     const composedMessages = info
         .map((item, index) => item.toMessage(index))
@@ -74,17 +74,10 @@ const main = async () => {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
     const response = await page.goto(URL);
-    const dimensions = await page.evaluate(() => {
-        return {
-            width: document.documentElement.clientWidth,
-            height: document.documentElement.clientHeight,
-            deviceScaleFactor: window.devicePixelRatio,
-        };
-    });
-
-    console.log("Dimensions:", dimensions);
-
-    await browser.close();
+    await new Promise((r) => setTimeout(r, 600));
+    const firstContainer = await page.$(".widget-search-result-container ");
+    const items = await firstContainer.$eval("div", (el) => el.children);
+    console.log(items);
 };
 
 main();

@@ -1,4 +1,4 @@
-export class ScraptedItem {
+export class ScrapedItem {
     readonly name: string;
     readonly price: number;
     readonly url: string;
