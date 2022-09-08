@@ -14,6 +14,6 @@ export class ScrapedItem {
     }
 
     toMessage(index: number): string {
-        return `[${index + 1}. ${this.name} ${this.getPrice()}](${this.url})`;
+        return `<a href="${this.url}">${index + 1}. ${this.name} ${this.getPrice()}</a>`;
     }
 }

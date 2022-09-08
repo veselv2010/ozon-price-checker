@@ -3,10 +3,12 @@ import { Update } from "typegram";
 import * as puppeteer from "puppeteer";
 import fs = require("fs");
 import { ScrapedItem } from "./models/ScrapedItem";
+import { createTextChangeRange } from "typescript";
 
 const cachePath = ".cache/cache.json";
 const bot: Telegraf<Context<Update>> = new Telegraf(
-    process.env.BOT_KEY as string
+    // process.env.BOT_KEY as string
+    "5416657821:AAG48y22DvIQMQXGq_8upJgW1X78hff-Eus"
 );
 
 bot.start((ctx) => {
@@ -15,8 +17,8 @@ bot.start((ctx) => {
 });
 
 bot.command("quit", (ctx) => {
-    ctx.leaveChat();
     removeChatIdFromCache(ctx.message.chat.id.toString());
+    ctx.reply(`Removed ${ctx.message.chat.id}`);
 });
 
 function sendMessage(info: ScrapedItem[]): void {
@@ -25,7 +27,11 @@ function sendMessage(info: ScrapedItem[]): void {
         .map((item, index) => item.toMessage(index))
         .join("\n");
     chatIds.forEach((id) => {
-        bot.telegram.sendMessage(id, composedMessages);
+        bot.telegram.callApi("sendMessage", {
+            chat_id: id,
+            text: composedMessages,
+            parse_mode: "HTML",
+        });
     });
 }
 
@@ -59,11 +65,19 @@ function saveChatIdToCache(id: string): void {
 }
 
 function getCacheArray(): Array<string> {
-    const file = fs.readFileSync(cachePath, "utf8");
-    return JSON.parse(file) as Array<string>;
+    if (fs.existsSync(cachePath)) {
+        const file = fs.readFileSync(cachePath, "utf8");
+        return JSON.parse(file) as Array<string>;
+    }
+
+    return [];
 }
 
 function saveCacheArray(cache: Array<string>): void {
+    if (!fs.existsSync(".cache")) {
+        fs.mkdirSync(".cache");
+    }
+
     fs.writeFileSync(cachePath, JSON.stringify(cache), "utf-8");
 }
 
@@ -71,10 +85,15 @@ const URL =
     "https://www.ozon.ru/category/videokarty-15721/?deny_category_prediction=true&from_global=true&sorting=ozon_card_price&text=rtx+3080";
 
 const main = async () => {
-    const items = await parseItems();
-    console.log(items);
+    await bot.launch();
+    setInterval(() => timerCallback(), 30000);
     // sendMessage(items);
 };
+
+async function timerCallback(): Promise<void> {
+    const items = await parseItems();
+    sendMessage(items);
+}
 
 const parseItems = async (): Promise<Array<ScrapedItem>> => {
     const browser = await puppeteer.launch({ headless: false });
@@ -88,13 +107,15 @@ const parseItems = async (): Promise<Array<ScrapedItem>> => {
     await new Promise((r) => setTimeout(r, 1000));
     const items = await page.$$(".j4z");
     const data: Array<ScrapedItem> = [];
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < Math.min(items.length, 10); i++) {
         const item = items[i];
         const title = await getTitle(item);
         const price = await getPrice(item);
         const url = await getUrl(item);
-        data.push(new ScrapedItem(title, price, url));
+        data.push(new ScrapedItem(title, price, "https://www.ozon.ru" + url));
     }
+
+    await browser.close();
     return data;
 };
 
@@ -126,4 +147,6 @@ const getUrl = async (
     return hrefBlock?.evaluate((el) => el.getAttribute("href"));
 };
 
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
 main();
