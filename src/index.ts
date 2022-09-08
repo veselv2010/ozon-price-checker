@@ -17,8 +17,7 @@ bot.command('quit', (ctx) => {
 
 function sendMessage(info: ScraptedItem[]): void {
     const chatIds = getCachedChatIds();
-    const composedMessages = [...Array(info.length).keys()].map<string>((index) => {
-        const item = info.at(index);
+    const composedMessages = info.map((item, index) => {
         const message = `${index + 1}. ${composeMessage(item)}`;
         return `[${message}](${item.url})`;
     }).join('\n');
