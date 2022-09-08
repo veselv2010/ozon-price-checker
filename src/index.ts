@@ -96,7 +96,7 @@ async function timerCallback(): Promise<void> {
 }
 
 const parseItems = async (): Promise<Array<ScrapedItem>> => {
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     page.setViewport({
         width: 1024,
