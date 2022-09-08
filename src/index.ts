@@ -11,8 +11,8 @@ bot.start((ctx) => {
 });
 
 bot.command('quit', (ctx) => {
-    ctx.telegram.leaveChat(ctx.message.chat.id);
     ctx.leaveChat();
+    removeChatIdFromCache(ctx.message.chat.id.toString())
 });
 
 function sendMessage(info: ScraptedItem[]): void {
