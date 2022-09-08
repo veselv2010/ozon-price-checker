@@ -84,9 +84,10 @@ const parseItems = async (): Promise<Array<ScrapedItem>> => {
     const items = await page.$$(".j4z");
     const data: Array<ScrapedItem> = [];
     for (let i = 0; i < items.length; i++) {
-        const title = await getTitle(items[i]);
-        const price = await getPrice(items[i]);
-        const url = await getUrl(items[i]);
+        const item = items[i];
+        const title = await getTitle(item);
+        const price = await getPrice(item);
+        const url = await getUrl(item);
         data.push(new ScrapedItem(title, price, url));
     }
     return data;
@@ -95,9 +96,9 @@ const parseItems = async (): Promise<Array<ScrapedItem>> => {
 const getPrice = async (
     elem: puppeteer.ElementHandle<Element>
 ): Promise<number> => {
-    const priceBlock = await elem.$(".ui-o7");
+    const priceBlock = await elem.$(".ui-o7.ui-p0.ui-p3");
     const result = await priceBlock.evaluate((el) => el.textContent);
-    return Number(result.replace("/&thinsp;/gi", "").replace("₽", ""));
+    return Number(result.replace("/&thinsp;/gi", "").replace("₽", "").replace(' ', '').trim());
 };
 
 const getTitle = async (
