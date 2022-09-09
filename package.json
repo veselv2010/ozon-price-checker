@@ -19,6 +19,7 @@
   "homepage": "https://github.com/veselv2010/ozon-price-checker#readme",
   "dependencies": {
     "axios": "^0.27.2",
+    "dotenv": "^16.0.2",
     "jsdom": "^20.0.0",
     "mocha": "^10.0.0",
     "puppeteer": "^17.1.3",

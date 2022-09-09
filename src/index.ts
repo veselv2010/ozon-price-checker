@@ -1,3 +1,4 @@
+require('dotenv').config();
 import { Context, Telegraf } from "telegraf";
 import { Update } from "typegram";
 import puppeteer from "puppeteer-extra";
@@ -8,8 +9,7 @@ import { ElementHandle } from "puppeteer";
 
 const cachePath = ".cache/cache.json";
 const bot: Telegraf<Context<Update>> = new Telegraf(
-    // process.env.BOT_KEY as string
-    "5416657821:AAFz-Q2n5e6yeab2DGEBvSHkw5EV00KmpIE"
+    process.env.BOT_KEY as string
 );
 
 bot.start((ctx) => {
