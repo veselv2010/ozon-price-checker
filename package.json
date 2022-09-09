@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -b",
-    "start": "BOT_KEY=5416657821:AAFz-Q2n5e6yeab2DGEBvSHkw5EV00KmpIE ts-node src/index.ts"
+    "start": "ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
