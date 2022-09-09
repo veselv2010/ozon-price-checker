@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { OzonBot } from './OzonBot';
-import { BotSubscribersCachedCollection } from './BotSubscribersCachedCollection';
+import { BotSubscribersCachedSet } from './BotSubscribersCachedSet';
 import { OzonScraper } from './OzonScraper';
 
 dotenv.config();
@@ -10,7 +10,7 @@ const OZON_SEARCH_RESULTS_URL =
 
 const ozonBot = new OzonBot(
     process.env.BOT_KEY as string,
-    new BotSubscribersCachedCollection('./.cache/cache.json'),
+    new BotSubscribersCachedSet('./.cache/cache.json'),
     new OzonScraper(OZON_SEARCH_RESULTS_URL),
 );
 
