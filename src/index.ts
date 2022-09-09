@@ -1,31 +1,34 @@
 import { Context, Telegraf } from "telegraf";
 import { Update } from "typegram";
-import * as puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
 import fs = require("fs");
 import { ScrapedItem } from "./models/ScrapedItem";
-import { createTextChangeRange } from "typescript";
+import PluginStealth = require("puppeteer-extra-plugin-stealth");
+import { ElementHandle } from "puppeteer";
 
 const cachePath = ".cache/cache.json";
 const bot: Telegraf<Context<Update>> = new Telegraf(
     // process.env.BOT_KEY as string
-    "5416657821:AAG48y22DvIQMQXGq_8upJgW1X78hff-Eus"
+    "5416657821:AAFz-Q2n5e6yeab2DGEBvSHkw5EV00KmpIE"
 );
 
 bot.start((ctx) => {
     ctx.reply("Hello " + ctx.from.first_name + "!");
-    saveChatIdToCache(ctx.message.chat.id.toString());
+    if (ctx.chat.id?.toString() != null) {
+        saveChatIdToCache(ctx.chat.id.toString());
+    }
 });
 
 bot.command("quit", (ctx) => {
-    removeChatIdFromCache(ctx.message.chat.id.toString());
+    if (ctx.chat.id?.toString() != null) {
+        removeChatIdFromCache(ctx.message.chat.id.toString());
+    }
     ctx.reply(`Removed ${ctx.message.chat.id}`);
 });
 
 function sendMessage(info: ScrapedItem[]): void {
     const chatIds = getCachedChatIds();
-    const composedMessages = info
-        .map((item, index) => item.toMessage(index))
-        .join("\n");
+    const composedMessages = info.map((item) => item.toMessage()).join("\n");
     chatIds.forEach((id) => {
         bot.telegram.callApi("sendMessage", {
             chat_id: id,
@@ -86,7 +89,7 @@ const URL =
 
 const main = async () => {
     await bot.launch();
-    setInterval(() => timerCallback(), 30000);
+    setInterval(() => timerCallback(), 1800000);
     // sendMessage(items);
 };
 
@@ -96,6 +99,7 @@ async function timerCallback(): Promise<void> {
 }
 
 const parseItems = async (): Promise<Array<ScrapedItem>> => {
+    puppeteer.use(PluginStealth());
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     page.setViewport({
@@ -114,14 +118,11 @@ const parseItems = async (): Promise<Array<ScrapedItem>> => {
         const url = await getUrl(item);
         data.push(new ScrapedItem(title, price, "https://www.ozon.ru" + url));
     }
-
     await browser.close();
     return data;
 };
 
-const getPrice = async (
-    elem: puppeteer.ElementHandle<Element>
-): Promise<number> => {
+const getPrice = async (elem: ElementHandle<Element>): Promise<number> => {
     const priceBlock = await elem.$(".ui-o7.ui-p0.ui-p3");
     const result = await priceBlock?.evaluate((el) => el.textContent);
     return Number(
@@ -133,16 +134,12 @@ const getPrice = async (
     );
 };
 
-const getTitle = async (
-    elem: puppeteer.ElementHandle<Element>
-): Promise<string> => {
+const getTitle = async (elem: ElementHandle<Element>): Promise<string> => {
     const titleBlock = await elem.$(".tsBodyL");
     return titleBlock?.evaluate((el) => el.textContent);
 };
 
-const getUrl = async (
-    elem: puppeteer.ElementHandle<Element>
-): Promise<string> => {
+const getUrl = async (elem: ElementHandle<Element>): Promise<string> => {
     const hrefBlock = await elem.$(".tile-hover-target");
     return hrefBlock?.evaluate((el) => el.getAttribute("href"));
 };

@@ -13,7 +13,7 @@ export class ScrapedItem {
         return `${this.price} ₽`;
     }
 
-    toMessage(index: number): string {
-        return `<a href="${this.url}">${index + 1}. ${this.name} ${this.getPrice()}</a>`;
+    toMessage(): string {
+        return `${this.getPrice()} <a href="${this.url}">${this.name}</a>`;
     }
 }
