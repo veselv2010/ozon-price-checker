@@ -1,6 +1,6 @@
 import { Context, Telegraf } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
-import { BotSubscribersCachedCollection } from './BotSubscribersCachedCollection';
+import { BotSubscribersCachedSet } from './BotSubscribersCachedSet';
 import { ScrapedItem } from './models/ScrapedItem';
 import { OzonScraper } from './OzonScraper';
 
@@ -9,18 +9,18 @@ export class OzonBot {
 
     constructor(
         token: string,
-        private readonly _botSubscribers: BotSubscribersCachedCollection,
+        private readonly _botSubscribers: BotSubscribersCachedSet,
         private readonly _ozonScraper: OzonScraper,
     ) {
         this._telegraf = new Telegraf(token);
 
         this._telegraf.start((ctx) => {
             ctx.reply(`Hello ${ctx.from.first_name}!`);
-            this._botSubscribers.addChatId(ctx.message.chat.id.toString());
+            this._botSubscribers.add(ctx.message.chat.id.toString());
         });
 
         this._telegraf.command('quit', (ctx) => {
-            this._botSubscribers.removeChatId(ctx.message.chat.id.toString());
+            this._botSubscribers.remove(ctx.message.chat.id.toString());
             ctx.reply(`Removed ${ctx.message.chat.id}`);
         });
     }
@@ -49,7 +49,10 @@ export class OzonBot {
         const messageText = items.map(this.formatScrapedItem).join('\n');
 
         for (const id of chatIds) {
-            await this._telegraf.telegram.sendMessage(id, messageText, { parse_mode: 'HTML' });
+            await this._telegraf.telegram.sendMessage(id, messageText, {
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
+            });
         }
     }
 }
