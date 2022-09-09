@@ -3,25 +3,25 @@ import { delay } from './utils/delay';
 import puppeteer from 'puppeteer-extra';
 import PluginStealth = require('puppeteer-extra-plugin-stealth');
 import { ElementHandle } from 'puppeteer';
+import * as jsdom from 'jsdom';
 
 export class OzonScraper {
-    constructor(
-        private readonly _searchResultsUrl: string,
-    ) {
-    }
+    constructor(private readonly _searchResultsUrl: string) {}
 
     async load(count: number): Promise<ScrapedItem[]> {
-        const { page, browser } = await this.initBrowser(this._searchResultsUrl);
+        const { page, browser } = await this.initBrowser(
+            this._searchResultsUrl
+        );
         await delay(1000);
-
-        const elements = await page.$$('.j4z');
+        const { JSDOM } = jsdom;
+        const { document } = new JSDOM(await page.content()).window;
+        const elements = Array.from(document.querySelectorAll('.j4z'));
         const data: ScrapedItem[] = [];
-
         for (const el of elements.slice(0, count)) {
             data.push({
-                title: await this.getTitle(el),
-                price: await this.getPrice(el),
-                url: 'https://www.ozon.ru' + await this.getUrl(el)
+                title: this.getTitle(el),
+                price: this.getPrice(el),
+                url: 'https://www.ozon.ru' + this.getUrl(el),
             });
         }
 
@@ -42,12 +42,9 @@ export class OzonScraper {
         return { page, browser };
     }
 
-    private async getPrice(
-        elem: ElementHandle<Element>
-    ): Promise<number> {
-        const priceBlock = await elem.$('.ui-o7.ui-p0.ui-p3');
-        const result = await priceBlock?.evaluate((el) => el.textContent);
-
+    private getPrice(elem: Element): number {
+        const priceBlock = elem.querySelector('.ui-o7.ui-p0');
+        const result = priceBlock?.textContent;
         return Number(
             result
                 ?.replace('/&thinsp;/gi', '')
@@ -57,17 +54,13 @@ export class OzonScraper {
         );
     }
 
-    private async getTitle(
-        elem: ElementHandle<Element>
-    ): Promise<string> {
-        const titleBlock = await elem.$('.tsBodyL');
-        return await titleBlock?.evaluate((el) => el.textContent) || '';
+    private getTitle(elem: Element): string {
+        return elem.querySelector('.tsBodyL')?.textContent ?? '';
     }
 
-    private async getUrl(
-        elem: ElementHandle<Element>
-    ): Promise<string> {
-        const hrefBlock = await elem.$('.tile-hover-target');
-        return await hrefBlock?.evaluate((el) => el.getAttribute('href')) || '';
+    private getUrl(elem: Element): string {
+        return (
+            elem.querySelector('.tile-hover-target')?.getAttribute('href') ?? ''
+        );
     }
 }
