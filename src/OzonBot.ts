@@ -49,7 +49,10 @@ export class OzonBot {
         const messageText = items.map(this.formatScrapedItem).join('\n');
 
         for (const id of chatIds) {
-            await this._telegraf.telegram.sendMessage(id, messageText, { parse_mode: 'HTML' });
+            await this._telegraf.telegram.sendMessage(id, messageText, {
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
+            });
         }
     }
 }
