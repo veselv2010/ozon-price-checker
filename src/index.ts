@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import { OzonBot } from './OzonBot';
 import { BotSubscribersCachedSet } from './BotSubscribersCachedSet';
 import { OzonScraper } from './OzonScraper';
+import { ConsoleLogManager } from './logger/ConsoleLogManager';
 
 dotenv.config();
 
@@ -11,11 +12,12 @@ const OZON_SEARCH_RESULTS_URL =
 const ozonBot = new OzonBot(
     process.env.BOT_KEY as string,
     new BotSubscribersCachedSet('./.cache/cache.json'),
-    new OzonScraper(OZON_SEARCH_RESULTS_URL)
+    new OzonScraper(OZON_SEARCH_RESULTS_URL),
+    new ConsoleLogManager()
 );
 
 const main = async () => {
-    await ozonBot.launch(1800000);
+    await ozonBot.launch(15000);
 };
 
 main();
