@@ -17,7 +17,7 @@ const ozonBot = new OzonBot(
 );
 
 const main = async () => {
-    await ozonBot.launch(15000);
+    await ozonBot.launch(60 * 30 * 1000);
 };
 
 main();
