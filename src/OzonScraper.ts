@@ -15,7 +15,7 @@ export class OzonScraper {
         await delay(5000);
         const { JSDOM } = jsdom;
         const { document } = new JSDOM(await page.content()).window;
-        const elements = Array.from(document.querySelectorAll('.jz5.j5z'));
+        const elements = Array.from(document.querySelectorAll('.z5j.jz6'));
         const data: ScrapedItem[] = [];
         for (const el of elements.slice(0, count)) {
             data.push({

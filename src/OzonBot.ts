@@ -38,6 +38,9 @@ export class OzonBot {
         await this._telegraf.launch();
         process.once('SIGINT', () => this._telegraf.stop('SIGINT'));
         process.once('SIGTERM', () => this._telegraf.stop('SIGTERM'));
+        this._ozonScraper
+            .load(10)
+            .then((items) => this.notifySubscribers(items));
 
         setInterval(
             () =>
