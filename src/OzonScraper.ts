@@ -15,15 +15,15 @@ export class OzonScraper {
         await delay(5000);
         const { JSDOM } = jsdom;
         const { document } = new JSDOM(await page.content()).window;
-        const elements = Array.from(document.querySelectorAll('.z5j.jz6'));
-        const data: ScrapedItem[] = [];
-        for (const el of elements.slice(0, count)) {
-            data.push({
+        const elements = this.getProductElements(document);
+
+        const data: ScrapedItem[] = elements.slice(0, count).map((el) => {
+            return {
                 title: this.getTitle(el),
                 price: this.getPrice(el),
                 url: 'https://www.ozon.ru' + this.getUrl(el),
-            });
-        }
+            };
+        });
 
         await browser.close();
         return data;
@@ -62,5 +62,12 @@ export class OzonScraper {
         return (
             elem.querySelector('.tile-hover-target')?.getAttribute('href') ?? ''
         );
+    }
+
+    private getProductElements(document: Document): Element[] {
+        const collection = document.querySelector(
+            '[data-widget="searchResultsV2"]'
+        )?.children[0].children;
+        return Array.from(collection ?? []);
     }
 }
